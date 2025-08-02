@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "sjtnPFgXV60jZAi0OSSRT0ePUmVz5DxwWJovLeBiUzM=",
+  "Source": "Stackup.Quiz.Api",
+  "BasePath": "_content/Stackup.Quiz.Api",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
