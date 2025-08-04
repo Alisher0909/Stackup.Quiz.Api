@@ -1,10 +1,10 @@
 @Host = http://localhost:5031
 
-POST  {{Host}}/api/quiz?hello=world
+POST  {{Host}}/api/quiz
 Content-Type: application/json
 
 {
-    "title": "Test quiz 4",
+    "title": "Test quiz 2",
     "description": "Bu test quiz",
     "state": "disabled"
 }
@@ -13,15 +13,15 @@ Content-Type: application/json
 GET {{Host}}/api/quiz
 ###
 
-GET {{Host}}/api/quiz/3
+GET {{Host}}/api/quiz/2
 ###
 
-PUT  {{Host}}/api/quiz/3
+PUT  {{Host}}/api/quiz/2
 Content-Type: application/json
 
 {
-    "title": "Updated quiz",
+    "title": "Test quiz 1",
     "description": "Bu test quiz",
-    "state": "active"
+    "state": "disabled"
 }
 ###

@@ -1,10 +1,7 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace Stackup.Quiz.Api.Dtos;
 
 public class UpdateQuizDto
 {
-    [Required, MinLength(4), MaxLength(100)]
     public required string Title { get; set; }
     public string? Description { get; set; }
     public QuizState State { get; set; }

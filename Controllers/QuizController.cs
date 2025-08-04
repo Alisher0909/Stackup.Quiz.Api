@@ -1,66 +1,42 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Stackup.Quiz.Api.Dtos;
+using Stackup.Quiz.Api.Models;
+using Stackup.Quiz.Api.Services.Abstractions;
 
 namespace Stackup.Quiz.Api.Controllers;
 
 [ApiController, Route("api/[controller]")]
 
-public class QuizController : Controller
+public class QuizController(IQuizService quizService, IMapper mapper) : Controller
 {
-    private static Dictionary<string, QuizDto> quizes = [];
-    private static IEnumerable<QuizDto> quizList = quizes.Values?.Where(q => q.State is not QuizState.Deleted) ?? [];
-    private static int idIndex = 1;
-
     [HttpPost]
-    public IActionResult Create([FromBody] CreateQuizDto dto)
+    public async Task<IActionResult> Create([FromBody] CreateQuizDto dto, CancellationToken abortionToken = default)
     {
-        if (quizes.TryAdd(dto.Title, new QuizDto
-        {
-            Id = idIndex++,
-            Title = dto.Title,
-            Description = dto.Description,
-            State = dto.State,
-            StartsAt = dto.StartsAt,
-            EndsAt = dto.EndsAt,
-            IsPrivate = dto.IsPrivate,
-            Password = dto.Password
-        }) is false)
-            return Conflict($"'{dto.Title}' already exists.");
-
-        idIndex++;
-
-        return Ok(quizes[dto.Title]);
+        var model = mapper.Map<CreateQuiz>(dto);
+        var created = await quizService.CreateQuizAsync(model, abortionToken);
+        return Ok(mapper.Map<QuizDto>(created));
     }
 
     [HttpGet]
-    public IActionResult GetAll() => Ok(quizList);
+    public async Task<IActionResult> GetAll(CancellationToken abortionToken = default)
+    {
+        var quizes = await quizService.GetAllAsync(abortionToken);
+        return Ok(quizes.Select(mapper.Map<QuizDto>));
+    }
 
 
     [HttpGet("{id}")]
-    public IActionResult GetById(int id)
+    public async Task<IActionResult> GetById(int id, CancellationToken abortionToken = default)
     {
-        var quiz = quizList.FirstOrDefault(q => q.Id == id);
-        if (quiz is null)
-            return NotFound($"Quiz with ID {id} not found.");
-
-        return Ok(quiz);
+        var single = await quizService.GetSingleAsync(id, abortionToken);
+        return Ok(mapper.Map<QuizDto>(single));
     }
 
     [HttpPut("{id}")]
-    public IActionResult UpdateById(int id, [FromBody]UpdateQuizDto dto)
+    public async Task<IActionResult> UpdateById(int id, [FromBody] UpdateQuizDto dto, CancellationToken abortionToken = default)
     {
-        var quiz = quizList.FirstOrDefault(q => q.Id == id);
-        if (quiz is null)
-            return NotFound($"Quiz with ID {id} not found.");
-
-        quiz.Title = dto.Title;
-        quiz.Description = dto.Description;
-        quiz.State = dto.State;
-        quiz.StartsAt = dto.StartsAt;
-        quiz.EndsAt = dto.EndsAt;
-        quiz.IsPrivate = dto.IsPrivate;
-        quiz.Password = dto.Password;
-
-        return Ok(quiz);
+        var updated = await quizService.UpdateAsync(id, mapper.Map<UpdateQuiz>(dto), abortionToken);
+        return Ok(mapper.Map<QuizDto>(updated));
     }
 }

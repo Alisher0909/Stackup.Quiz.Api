@@ -1,11 +1,14 @@
 namespace Stackup.Quiz.Api.Models;
 
 public record Quiz(
-    int Id,
     string Title,
-    string? Description, 
+    string? Description,
     QuizState State,
     DateTimeOffset? StartsAt,
     DateTimeOffset? EndsAt,
     bool IsPrivate,
-    string? Password);
+    string? Password)
+
+{
+    public int Id { get; set; }
+}
