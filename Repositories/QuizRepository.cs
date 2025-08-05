@@ -1,59 +1,60 @@
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using Stackup.Quiz.Api.Data;
 using Stackup.Quiz.Api.Exceptions;
 using Stackup.Quiz.Api.Repositories.Abstractions;
 
 namespace Stackup.Quiz.Api.Repositories;
 
-public class QuizRepository : IQuizRepository
+public class QuizRepository(QuizContext context) : IQuizRepository
 {
-    private Dictionary<string, Entities.Quiz> quizes = [];
-    private int index = 1;
-
     public async ValueTask DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
-        var quiz = await GetSingleAsync(id, cancellationToken)
-            ?? throw new CustomNotFoundException("Quiz not found.");
-
-        quiz.State = Entities.QuizState.Deleted;
+        var effectedRows = await context.Quizes.Where(q => q.Id == id).ExecuteDeleteAsync(cancellationToken);
+        if (effectedRows < 1)
+            throw new CustomNotFoundException($"Quiz with id {id} not found.");
     }
 
-    public ValueTask<bool> ExistsAsync(string title, CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(quizes.ContainsKey(title));
+    public async ValueTask<bool> ExistsAsync(string title, CancellationToken cancellationToken = default)
+        => await context.Quizes.AnyAsync(q => q.Title == title, cancellationToken);
 
-    public ValueTask<IEnumerable<Entities.Quiz>> GetAllAsync(CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(quizes.Values.Where(q => q.State != Entities.QuizState.Deleted));
-
+    public async ValueTask<IEnumerable<Entities.Quiz>> GetAllAsync(CancellationToken cancellationToken = default)
+        => await context.Quizes.Where(q => q.State != Entities.QuizState.Deleted).ToListAsync(cancellationToken);
 
     public async ValueTask<Entities.Quiz> GetSingleAsync(int id, CancellationToken cancellationToken = default)
         => await GetSingleOrDefaultAsync(id, cancellationToken)
             ?? throw new CustomNotFoundException("Quiz not found.");
 
-    public ValueTask<Entities.Quiz?> GetSingleOrDefaultAsync(int id, CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(quizes.Values.FirstOrDefault(q => q.Id == id && q.State != Entities.QuizState.Deleted));
+    public async ValueTask<Entities.Quiz?> GetSingleOrDefaultAsync(int id, CancellationToken cancellationToken = default)
+        => await context.Quizes.FindAsync([ id ], cancellationToken);
 
-    public ValueTask<Entities.Quiz> InsertAsync(Entities.Quiz quiz, CancellationToken cancellationToken = default)
+    public async ValueTask<Entities.Quiz> InsertAsync(Entities.Quiz quiz, CancellationToken cancellationToken = default)
     {
-        if (quizes.TryAdd(quiz.Title, quiz))
+        try
         {
-            quiz.Id = index++;
-            return ValueTask.FromResult(quiz);
+            var entry = context.Quizes.Add(quiz);
+            await context.SaveChangesAsync(cancellationToken);
+
+            return entry.Entity;
         }
-        
-        throw new CustomConflictException("Title must be unique.");
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })
+        {
+            throw new CustomConflictException("Title must be unique.");
+        }
     }
 
-    public async ValueTask<Entities.Quiz> UpdateAsync(int id, Entities.Quiz quiz, CancellationToken cancellationToken = default)
+    public async ValueTask<Entities.Quiz> UpdateAsync(Entities.Quiz quiz, CancellationToken cancellationToken = default)
     {
-        var found = await GetSingleAsync(id, cancellationToken);
-        quiz.Id = found.Id;
-        if (found.Title != quiz.Title)
+        try
         {
-            if (quizes.TryAdd(quiz.Title, quiz))
-                quizes.Remove(found.Title);
-            else
-                throw new CustomConflictException("Title must be unique.");
+            quiz.UpdatedAt = DateTimeOffset.UtcNow;
+            await context.SaveChangesAsync(cancellationToken);
         }
-        else
-            quizes[quiz.Title] = quiz;
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })
+        {
+            throw new CustomConflictException("Title must be unique.");
+        }
+
         return quiz;
     }
 }

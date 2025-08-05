@@ -9,7 +9,10 @@ public class Quiz
     public DateTimeOffset? StartsAt { get; set; }
     public DateTimeOffset? EndsAt { get; set; }
     public bool IsPrivate { get; set; }
-    public string? Password { get; set; }    
+    public string? Password { get; set; }
+
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
 }
 
 public enum QuizState

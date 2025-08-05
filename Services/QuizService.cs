@@ -29,8 +29,12 @@ public class QuizService(IMapper mapper, IQuizRepository repository) : IQuizServ
         => repository.DeleteAsync(id, cancellationToken);
 
     public async ValueTask<Models.Quiz> UpdateAsync(int id, UpdateQuiz quiz, CancellationToken cancellationToken = default)
-        => mapper.Map<Models.Quiz>(await repository.UpdateAsync(id, mapper.Map<Entities.Quiz>(quiz), cancellationToken));
-    
+    {
+        var entity = await repository.GetSingleAsync(id, cancellationToken);
+        mapper.Map(quiz, entity);
+        return mapper.Map<Models.Quiz>(await repository.UpdateAsync(entity, cancellationToken));
+    }
+
     public ValueTask<bool> ExistsAsync(string title, CancellationToken cancellationToken = default)
         => repository.ExistsAsync(title, cancellationToken);
 }

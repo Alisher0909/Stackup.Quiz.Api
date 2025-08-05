@@ -1,6 +1,8 @@
 using System.Text.Json.Serialization;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using Stackup.Quiz.Api;
+using Stackup.Quiz.Api.Data;
 using Stackup.Quiz.Api.Dtos;
 using Stackup.Quiz.Api.Middlewares;
 using Stackup.Quiz.Api.Repositories;
@@ -21,10 +23,14 @@ builder.Services.AddControllers()
     });
 
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
-builder.Services.AddSingleton<IQuizRepository, QuizRepository>();
+builder.Services.AddScoped<IQuizRepository, QuizRepository>();
 builder.Services.AddScoped<IQuizService, QuizService>();
 builder.Services.AddScoped<IValidator<CreateQuizDto>, CreateQuizDtoValidator>();
 builder.Services.AddScoped<IValidator<UpdateQuizDto>, UpdateQuizDtoValidator>();
+
+builder.Services.AddDbContext<QuizContext>(options => options
+    .UseNpgsql(builder.Configuration.GetConnectionString("Quiz"))
+    .UseSnakeCaseNamingConvention());
 
 var app = builder.Build();
 

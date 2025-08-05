@@ -4,6 +4,7 @@ POST  {{Host}}/api/quiz
 Content-Type: application/json
 
 {
+    "title": "Test quiz 3",
     "description": "Bu test quiz",
     "state": "disabled"
 }
