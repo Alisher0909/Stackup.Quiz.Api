@@ -1,54 +1,36 @@
 using AutoMapper;
-using Stackup.Quiz.Api.Exceptions;
 using Stackup.Quiz.Api.Models;
+using Stackup.Quiz.Api.Repositories.Abstractions;
 using Stackup.Quiz.Api.Services.Abstractions;
 
 namespace Stackup.Quiz.Api.Services;
 
-public class QuizService(IMapper mapper) : IQuizService
+public class QuizService(IMapper mapper, IQuizRepository repository) : IQuizService
 {
-    private readonly Dictionary<string, Models.Quiz> quizes = [];
-    private IEnumerable<Models.Quiz> existingQuizes =>
-        quizes.Values.Where(q => q.State is not QuizState.Deleted);
-    private int idIndex = 1;
-
-    public ValueTask<Models.Quiz> CreateQuizAsync(CreateQuiz quiz, CancellationToken cancellationToken = default)
+    public async ValueTask<Models.Quiz> CreateQuizAsync(CreateQuiz quiz, CancellationToken cancellationToken = default)
     {
-        if (quizes.ContainsKey(quiz.Title))
-            throw new CustomConflictException($"Quiz with title '{quiz.Title}' already exists.");
-
-        var newQuiz = mapper.Map<Models.Quiz>(quiz);
-        newQuiz.Id = idIndex++;
-
-        quizes.Add(quiz.Title, newQuiz);
-
-        return ValueTask.FromResult(newQuiz);
+        var entity = await repository.InsertAsync(mapper.Map<Entities.Quiz>(quiz), cancellationToken);
+        return mapper.Map<Models.Quiz>(entity);
     }
 
-    public ValueTask<IEnumerable<Models.Quiz>> GetAllAsync(CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(existingQuizes);
+    public async ValueTask<IEnumerable<Models.Quiz>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        var entities = await repository.GetAllAsync(cancellationToken);
+        return entities.Select(mapper.Map<Models.Quiz>);
+    }
 
-    public ValueTask<Models.Quiz?> GetSingleOrDefaultAsync(int id, CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(existingQuizes.FirstOrDefault(q => q.Id == id));
+    public async ValueTask<Models.Quiz?> GetSingleOrDefaultAsync(int id, CancellationToken cancellationToken = default)
+        => mapper.Map<Models.Quiz>(await repository.GetSingleOrDefaultAsync(id, cancellationToken));
 
     public async ValueTask<Models.Quiz> GetSingleAsync(int id, CancellationToken cancellationToken = default)
-        => await GetSingleOrDefaultAsync(id, cancellationToken)
-            ?? throw new CustomNotFoundException($"Quiz with ID {id} not found.");
+        => mapper.Map<Models.Quiz>(await repository.GetSingleAsync(id, cancellationToken));
 
-    public async ValueTask DeleteAsync(int id, CancellationToken cancellationToken = default)
-    {
-        var quiz = await GetSingleAsync(id, cancellationToken);
-        quizes[quiz.Title] = quiz with { State = QuizState.Deleted };
-    }
+    public ValueTask DeleteAsync(int id, CancellationToken cancellationToken = default)
+        => repository.DeleteAsync(id, cancellationToken);
 
     public async ValueTask<Models.Quiz> UpdateAsync(int id, UpdateQuiz quiz, CancellationToken cancellationToken = default)
-    {
-        var quizToUpdate = await GetSingleAsync(id, cancellationToken);
-        mapper.Map(quiz, quizToUpdate);
-
-        return quizToUpdate;
-    }
+        => mapper.Map<Models.Quiz>(await repository.UpdateAsync(id, mapper.Map<Entities.Quiz>(quiz), cancellationToken));
     
     public ValueTask<bool> ExistsAsync(string title, CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(quizes.ContainsKey(title));
+        => repository.ExistsAsync(title, cancellationToken);
 }

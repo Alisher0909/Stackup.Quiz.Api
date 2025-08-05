@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Stackup.Quiz.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b4e8e5dac5ca1e35aa86d782e202e911566ab81b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1432e4cd7d3beeb1aec360924e34e062a8b1b3e8")]
 [assembly: System.Reflection.AssemblyProductAttribute("Stackup.Quiz.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Stackup.Quiz.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

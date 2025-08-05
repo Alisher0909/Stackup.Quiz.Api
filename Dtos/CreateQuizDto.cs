@@ -2,7 +2,7 @@ namespace Stackup.Quiz.Api.Dtos;
 
 public class CreateQuizDto
 {
-    public required string Title { get; set; }
+    public string? Title { get; set; }
     public string? Description { get; set; }
     public QuizState State { get; set; }
     public DateTimeOffset? StartsAt { get; set; }

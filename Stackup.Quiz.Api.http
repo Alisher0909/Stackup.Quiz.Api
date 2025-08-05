@@ -4,7 +4,6 @@ POST  {{Host}}/api/quiz
 Content-Type: application/json
 
 {
-    "title": "Test quiz 2",
     "description": "Bu test quiz",
     "state": "disabled"
 }
@@ -13,14 +12,14 @@ Content-Type: application/json
 GET {{Host}}/api/quiz
 ###
 
-GET {{Host}}/api/quiz/2
+GET {{Host}}/api/quiz/1
 ###
 
-PUT  {{Host}}/api/quiz/2
+PUT  {{Host}}/api/quiz/1
 Content-Type: application/json
 
 {
-    "title": "Test quiz 1",
+    "title": "Test quiz 2",
     "description": "Bu test quiz",
     "state": "disabled"
 }
