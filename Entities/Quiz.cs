@@ -1,6 +1,6 @@
 namespace Stackup.Quiz.Api.Entities;
 
-public class Quiz
+public class Quiz : IHasTimestamp
 {
     public int Id { get; set; }
     public required string Title { get; set; }
@@ -10,6 +10,7 @@ public class Quiz
     public DateTimeOffset? EndsAt { get; set; }
     public bool IsPrivate { get; set; }
     public string? Password { get; set; }
+    public int MaxAttempts { get; set; } = -1;
 
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }

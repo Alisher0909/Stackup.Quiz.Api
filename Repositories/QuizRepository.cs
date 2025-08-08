@@ -6,7 +6,7 @@ using Stackup.Quiz.Api.Repositories.Abstractions;
 
 namespace Stackup.Quiz.Api.Repositories;
 
-public class QuizRepository(QuizContext context) : IQuizRepository
+public class QuizRepository(IQuizContext context) : IQuizRepository
 {
     public async ValueTask DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
@@ -47,7 +47,6 @@ public class QuizRepository(QuizContext context) : IQuizRepository
     {
         try
         {
-            quiz.UpdatedAt = DateTimeOffset.UtcNow;
             await context.SaveChangesAsync(cancellationToken);
         }
         catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })

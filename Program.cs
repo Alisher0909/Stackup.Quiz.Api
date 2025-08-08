@@ -28,9 +28,11 @@ builder.Services.AddScoped<IQuizService, QuizService>();
 builder.Services.AddScoped<IValidator<CreateQuizDto>, CreateQuizDtoValidator>();
 builder.Services.AddScoped<IValidator<UpdateQuizDto>, UpdateQuizDtoValidator>();
 
-builder.Services.AddDbContext<QuizContext>(options => options
+builder.Services.AddDbContext<IQuizContext, QuizContext>(options => options
     .UseNpgsql(builder.Configuration.GetConnectionString("Quiz"))
     .UseSnakeCaseNamingConvention());
+
+builder.Services.AddHostedService<AutoApplyMigrationsService>();
 
 var app = builder.Build();
 
